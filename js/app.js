@@ -135,7 +135,10 @@ players.on("value", function(snapshot) {
 
 // Results checker
 var rpsResults = function() {
-$("#p1Selected").html("");
+
+    // clear out the selected choice to display the results
+    $("#p1Selected").html("");
+    $("#p2Selected").html("");
 
     // once this function is called, grabs both players' data
     player1.once("value", function(snapshot) {
@@ -151,6 +154,8 @@ $("#p1Selected").html("");
     // Logic for round result
     if (p1result.val() !== null && p2result.val() !== null) {
         // If both players choose the same item
+        console.log("The is line 157");
+
         if (p1result.val().choice == p2result.val().choice) {
             $("#p1choices").html("<img src='images/" + p1result.val().choice + ".png'/>");
             $("#p2choices").html("<img src='images/" + p2result.val().choice + ".png'/>");
@@ -160,6 +165,7 @@ $("#p1Selected").html("");
             $("#p1choices").html("<img src='images/" + p1result.val().choice + ".png'/>");
             $("#p2choices").html("<img src='images/" + p2result.val().choice + ".png'/>");
             $("#results").html("<h1>" + p1 + " wins!</h1>");
+            // increment the wins and losses
             wins1++;
             losses2++;
         // Player two wins
@@ -198,57 +204,63 @@ $("#p1Selected").html("");
             wins2++;
             losses1++;
         };
+
         // After game then reset
         setTimeout(function() {
             playerTurn.update({
+                // set the turn back to start a new game
                 turn: 1
             });
             player1.once("value", function(snapshot) {
                 p1result = snapshot;
-            }, function(errorObject) {
+            }, 
+                function(errorObject) {
                 console.log("The read failed: " + errorObject.code);
             });
+
             if (p1result.val() !== null) {
+                // update the player1 win loss total 
                 player1.update({
                     wins: wins1,
                     losses: losses1
                 });
             };
+
             player2.once("value", function(snapshot) {
                 p2result = snapshot;
-            }, function(errorObject) {
+            }, 
+                function(errorObject) {
                 console.log("The read failed: " + errorObject.code);
             });
+
             if (p2result.val() !== null) {
+                // update the player2 win loss total 
                 player2.update({
                     wins: wins2,
                     losses: losses2
                 });
             };
             $("#results").html("");
-            $("#p1choices").html("");
-            $("#p2choices").html("");
-            $("#p1Selected").html("");
-            $("#p2Selected").html("");
+            $("#p2choices").empty();
+            $("#p2Selected").empty();
             }, 5000);
     };
 };
 
-// Checks whos turn it is so that each player gets a turn
+// each time this changes it's time for the other players turn. 
 playerTurn.on("value", function(snapshot) {
     if (snapshot.val() !== null) {
         // Display waiting for other player whenever it's their turn
         if (snapshot.val().turn == 2 && playerNum == 1) {
-        $("#p2choices").html("");
+        $("#p2choices").empty();
         $("#playerTurn").html("Waiting for " + p2 + " to choose.");
         } else if (snapshot.val().turn == 1 && playerNum == 2) {
-        $("#p1choices").html("");
+        $("#p1choices").empty();
         $("#playerTurn").html("Waiting for " + p1 + " to choose.");
         }
         // If it's player 1's turn, display choices on their specific page
         if (snapshot.val().turn == 1 && playerNum == 1) {
             $("#p1choices").empty();
-            $("#p1Selected").empty();
             $("#p1choices").append("<img src='images/rock.png' data-rps='rock' class='rpsImage'>");
             $("#p1choices").append("<img src='images/scissors.png' data-rps='scissors' class='rpsImage'>");
             $("#p1choices").append("<img src='images/paper.png' data-rps='paper' class='rpsImage'>");
@@ -256,7 +268,6 @@ playerTurn.on("value", function(snapshot) {
         // If it's player 2's turn, display choices on their specific page
         } else if (snapshot.val().turn == 2 && playerNum == 2) {
             $("#p2choices").empty();
-            $("#p2Selected").empty();
             $("#p2choices").append("<img src='images/rock.png' data-rps='rock' class='rpsImage'>");
             $("#p2choices").append("<img src='images/scissors.png' data-rps='scissors' class='rpsImage'>");
             $("#p2choices").append("<img src='images/paper.png' data-rps='paper' class='rpsImage'>");
@@ -274,18 +285,23 @@ $("#p1choices").on("click", "img", function() {
     var choice = $(this).data("rps");
     $("#p1choices").empty();
     $("#p1Selected").append("<img src='images/" + choice + ".png'/>");
+    console.log("The is line 284");
+
+    // update player turn to swith players
     setTimeout(function() {
         playerTurn.update({
             turn: 2
         });
+        // store the choice for later scoring
         player1.update({
             choice: choice
         }); 
+        // wait a little bit to let the writes complete
     }, 500);
 });
 $("#p2choices").on("click", "img", function() {
     var choice = $(this).data("rps");
-    $("#p2choices").html("");
+    $("#p2choices").empty();
     $("#p2Selected").html("<img src='images/" + choice + ".png'/>");
     setTimeout(function() {
         player2.update({
