@@ -1,0 +1,4 @@
+#p1choices > img.rpsImage,
+#p2choices > img.rpsImage {
+    max-width: 28%;
+}
